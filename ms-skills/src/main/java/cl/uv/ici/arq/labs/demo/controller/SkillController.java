@@ -15,12 +15,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.gson.Gson;
+
 import cl.uv.ici.arq.labs.demo.dtos.SkillDTO;
 import cl.uv.ici.arq.labs.demo.service.SkillService;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/skills")
-
+@Slf4j
 public class SkillController {
 
 	@Autowired
@@ -28,6 +31,7 @@ public class SkillController {
 		
 	@PostMapping
 	public ResponseEntity<SkillDTO> save(@RequestBody @Valid SkillDTO skillDTO) {
+		log.info("Request recibido " + new Gson().toJson(skillDTO));
 		return new ResponseEntity<>(service.createSkill(skillDTO), HttpStatus.CREATED);
 	}
 	

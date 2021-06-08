@@ -12,13 +12,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.gson.Gson;
+
 import cl.uv.ici.arq.labs.demo.dtos.KnowledgeRequestDTO;
 import cl.uv.ici.arq.labs.demo.dtos.KnowledgeResponseDTO;
 import cl.uv.ici.arq.labs.demo.service.KnowledgeService;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/knowledge")
-
+@Slf4j
 public class KnowledgeController {
 
 	
@@ -27,7 +30,8 @@ public class KnowledgeController {
 	
 		
 	@PutMapping
-	public ResponseEntity<KnowledgeRequestDTO> save(@RequestBody KnowledgeRequestDTO request) {		
+	public ResponseEntity<KnowledgeRequestDTO> save(@RequestBody KnowledgeRequestDTO request) {	
+		 log.info("Request recibido " + new Gson().toJson(request));
 		return new ResponseEntity<>(service.updateUserSkills(request), HttpStatus.CREATED);
 	}
 	
@@ -37,7 +41,7 @@ public class KnowledgeController {
 	}
 
 	 @GetMapping("/{userId}")
-	public ResponseEntity<KnowledgeResponseDTO> getAll(@PathVariable String userId) {		
+	public ResponseEntity<KnowledgeResponseDTO> getbyUserId(@PathVariable String userId) {		
 		return new ResponseEntity<>(service.getUserSkills(userId), HttpStatus.OK);
 	}
 

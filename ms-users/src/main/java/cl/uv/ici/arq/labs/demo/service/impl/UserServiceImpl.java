@@ -71,15 +71,14 @@ public class UserServiceImpl implements UserService {
 	@Override
 	@SuppressWarnings("unchecked")
 	public List<UserDTO> findBylastName(String lastName) {
-		return (List<UserDTO>) MapperUtils.mapAsList(userRepository.findByLastName(lastName),
-				new TypeToken<List<UserDTO>>() {
-				}.getType());
+		return (List<UserDTO>) MapperUtils.mapAsList(userRepository.findByLastName(lastName),new TypeToken<List<UserDTO>>() {}.getType());
 	}
 
 	@Autowired
 	private KnowledgeRepository knowledgeRepository;
 
 	
+	@SuppressWarnings("unused")
 	private List<String> UUIDConvert(List<UUID> input){
 		List<String> out = new ArrayList<String>();
 		for(UUID item:input) {
