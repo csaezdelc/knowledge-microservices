@@ -10,6 +10,7 @@
     <module>bff-knowledge</module>
     <module>ms-users</module>
     <module>ms-skills</module>
+	<module>knowledge-karate</module>	
   </modules>
   
 </project>
