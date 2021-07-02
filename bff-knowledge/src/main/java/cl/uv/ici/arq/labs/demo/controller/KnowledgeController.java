@@ -17,6 +17,8 @@ import com.google.gson.Gson;
 import cl.uv.ici.arq.labs.demo.dtos.KnowledgeRequestDTO;
 import cl.uv.ici.arq.labs.demo.dtos.KnowledgeResponseDTO;
 import cl.uv.ici.arq.labs.demo.service.KnowledgeService;
+import feign.codec.Decoder;
+import feign.codec.Encoder;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
@@ -28,6 +30,7 @@ public class KnowledgeController {
 	@Autowired
 	private KnowledgeService service;
 	
+
 		
 	@PutMapping
 	public ResponseEntity<KnowledgeRequestDTO> save(@RequestBody KnowledgeRequestDTO request) {	

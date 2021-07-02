@@ -1,10 +1,18 @@
 package cl.uv.ici.arq.labs.demo.service.impl;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.openfeign.FeignClientsConfiguration;
+import org.springframework.cloud.openfeign.support.ResponseEntityDecoder;
+import org.springframework.cloud.openfeign.support.SpringDecoder;
+import org.springframework.context.annotation.Import;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StreamUtils;
 
 import com.google.gson.Gson;
 
@@ -13,11 +21,19 @@ import cl.uv.ici.arq.labs.demo.dtos.KnowledgeResponseDTO;
 import cl.uv.ici.arq.labs.demo.dtos.SkillDTO;
 import cl.uv.ici.arq.labs.demo.dtos.UserDTO;
 import cl.uv.ici.arq.labs.demo.service.KnowledgeService;
+import cl.uv.ici.arq.labs.demo.service.client.CustomSkillClient;
 import cl.uv.ici.arq.labs.demo.service.client.SkillClient;
 import cl.uv.ici.arq.labs.demo.service.client.UserClient;
+import feign.Feign;
+import feign.Target;
+import feign.codec.Decoder;
+import feign.codec.Encoder;
+import feign.jackson.JacksonDecoder;
+import feign.jackson.JacksonEncoder;
 import lombok.extern.slf4j.Slf4j;
 
 @Service("knowledgeService")
+@Import(FeignClientsConfiguration.class)
 @Slf4j
 public class KnowledgeServiceImpl implements KnowledgeService {
 
@@ -26,10 +42,18 @@ public class KnowledgeServiceImpl implements KnowledgeService {
 
 	@Autowired
 	private SkillClient skill;
+	
+	private CustomSkillClient customClient;
+	
+	
 
 	@Override
 	public KnowledgeRequestDTO updateUserSkills(KnowledgeRequestDTO request) {
-		return user.saveKnowledge(request).getBody();
+		
+		ResponseEntity<KnowledgeRequestDTO> s = null;
+		URI determinedBasePathUri = URI.create("http://localhost:8082/users/knowledge");
+		customClient = Feign.builder().encoder(new JacksonEncoder()).decoder(byteArrayResourceDecoder()).target(Target.EmptyTarget.create(CustomSkillClient.class));
+		return customClient.saveKnowledge(determinedBasePathUri,request).getBody();
 	}
 
 	@Override
@@ -50,9 +74,15 @@ public class KnowledgeServiceImpl implements KnowledgeService {
 			listSkills = new ArrayList<SkillDTO>();
 
 			for (String skillId : knowledgeRequestDTO.getSkillList()) {
-				SkillDTO s=skill.getSkillById(skillId).getBody();
+
+				ResponseEntity<SkillDTO> s = null;
+				URI determinedBasePathUri = URI.create("http://localhost:8081/skills/"+skillId);
+				
+				customClient = Feign.builder().decoder(byteArrayResourceDecoder()).target(Target.EmptyTarget.create(CustomSkillClient.class));
+				
+				s = customClient.getSkillById(determinedBasePathUri);
 				log.info("Response recibido desde /skills/"+skillId+" " +new Gson().toJson( s));
-				listSkills.add(s);
+				listSkills.add(s.getBody());
 			}
 
 			response.add(new KnowledgeResponseDTO(userDTO, listSkills));
@@ -85,6 +115,17 @@ public class KnowledgeServiceImpl implements KnowledgeService {
 		log.info("Response para Retornar "+new Gson().toJson(response ));
 		return response;
 	}
+	
+	private Decoder byteArrayResourceDecoder() {
+        Decoder decoder = (response, type) -> {
+            if (type instanceof Class && ByteArrayResource.class.isAssignableFrom((Class) type)) {
+                return StreamUtils.copyToByteArray(response.body().asInputStream());
+            }
+            return new JacksonDecoder().decode(response, type);
+        };
+
+        return new ResponseEntityDecoder(decoder);
+    }
 
 
 }
